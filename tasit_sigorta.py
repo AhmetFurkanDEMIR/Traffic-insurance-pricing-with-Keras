@@ -89,7 +89,7 @@ k = 4
 
 num_val_samples = len(train_data) // k
 
-num_epochs = 600 # döngü eğitim sayisi
+num_epochs = 800 # döngü eğitim sayisi
 
 all_mae_histories = []
 
@@ -98,7 +98,7 @@ all_mae_histories = []
 
 for i in range(k):
 
-  print("işenen katman ",i)
+  print("işlenen katman ",i)
 
   # k.ıncı parçadaki doğrulama verisini hazırlar.
   val_data = train_data[i * num_val_samples: (i+1) * num_val_samples]
