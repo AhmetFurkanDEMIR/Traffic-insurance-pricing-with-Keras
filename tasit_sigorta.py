@@ -1,14 +1,3 @@
-"""
-veri setindeki tasit türleri => (0 = araba), (1 = kamyon), (2 = tır)
-
-dataset in etiketlerini kod içinde hesaplıyoruz.
-
-train_labels[i] = araba türü(0)* 300 + yaptigi_km * 0.005 + (100-surucu_sicil_puanı) * 2
-şeklinde etiketler oluşturduk.
-
-"""
-
-
 import pandas as pd
 
 veri1 = pd.read_csv('veri.csv')
@@ -43,7 +32,7 @@ for i in range(len(veri.tasit_turu)):
 
 	toplam.append(a)
 
-veri["fiyat"] = toplam.copy() # fiyat adlı sütun oluşturup etiketleri ekliyoruz.
+veri["fiyat"] = toplam.copy()
 
 train_data = veri[:100]
 
@@ -56,25 +45,31 @@ test_data.drop(["fiyat"],axis=1,inplace = True)
 train_labels = veri.fiyat[:100]
 
 test_labels = veri.fiyat[101:129]
-# verileri normalize etmek
+
 mean = train_data.mean(axis=0)
 train_data -= mean
 std = train_data.std(axis=0)
 train_data /= std
-#her sütundan o sütunun ortalamsı çıkartılır. standart sapmasına böleriz, böylece nitelik 0 civarına ortalanaır.
 
 test_data -= mean
 test_data /= std
 
 from keras import models
 from keras import layers
+from keras import regularizers
 
 def build_model():
 
   model = models.Sequential()
 
-  model.add(layers.Dense(128, activation="relu"))
-  model.add(layers.Dense(128, activation="relu"))
+  model.add(layers.Dense(128, kernel_regularizer=regularizers.l2(0.001), activation="relu"))# sinir ağında ağırlık düzenleştirme
+
+  model.add(layers.Dropout(0.5)) # aşırı uydurmayı engellemek için, Dropout(0.5) sinir ağından çıkan matrisin yarısını 0 lar
+
+  model.add(layers.Dense(128, kernel_regularizer=regularizers.l2(0.001), activation="relu"))
+
+  model.add(layers.Dropout(0.5))
+  
   model.add(layers.Dense(1)) # aktivasyon fonk. kullanmadik
   # sebebi çıktının aralığını sınırlandırmamalıyız, modelimiz ev tahmini yapacak
   
@@ -89,7 +84,7 @@ k = 4
 
 num_val_samples = len(train_data) // k
 
-num_epochs = 800 # döngü eğitim sayisi
+num_epochs = 600 # döngü eğitim sayisi
 
 all_mae_histories = []
 
@@ -98,7 +93,7 @@ all_mae_histories = []
 
 for i in range(k):
 
-  print("işlenen katman ",i)
+  print("işenen katman ",i)
 
   # k.ıncı parçadaki doğrulama verisini hazırlar.
   val_data = train_data[i * num_val_samples: (i+1) * num_val_samples]
@@ -124,7 +119,7 @@ for i in range(k):
 
 
 
-  mae_history = history.history['mae']
+  mae_history = history.history['mean_absolute_error']
 
   all_mae_histories.append(mae_history)
 
